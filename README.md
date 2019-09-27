@@ -7,14 +7,14 @@
 ### Setting up S3
 
 Go to S3 service using Service -> search S3. Now need to create two buckets - incominglambda & processedlambda. During creating bucket keep all defaults settings.
-We'll use incominglambda bucket to upload files and after printing , file will be copied into processedlambda bucket.
+We'll use incominglambda bucket to upload files and after printing , files will be copied into processedlambda bucket.
 
-When executed, Lambda needs to have permission to access your S3 bucket. Before we get started building your Lambda function, you must first create an IAM role( or assign policy to existing user) which Lambda will use to work with S3.
+When executed, Lambda needs to have permission to access your S3 bucket. Before we get started building our Lambda function, we must first create an IAM role( or assign policy to existing user) which Lambda will use to work with S3.
 
 ### Creating the Lambda Function
 
 #### Adding Code
-   Once you have the role/user set up, you’ll then need to create the lambda function. To do that, you’ll browse to Lambda and click Create Function. Creating a new Lambda function, I’ll be using Python 3.7 as the run-time.
+   Once we have the role/user set up, we’ll then need to create the lambda function. To do that, we’ll browse to Lambda and click Create Function. Creating a new Lambda function, I’ll be using Python 3.7 as the run-time.
 
    Our example code isn’t going to do much. It will only prove that it ran when an S3 event happen. In the example below, I’m using the builtin event Python dictionary and referencing the S3 key that initiated the event and printing it out. This output will show up in the CloudWatch Logs. Copy all code from "lambda_function.py" from this same repository and place to "Function Code" block.
    
@@ -29,7 +29,7 @@ When executed, Lambda needs to have permission to access your S3 bucket. Before 
    
 #### Adding the Trigger
 
-   Once we've the code we’ll be using inside of the function, we’ll then create the S3 trigger be selecting it on the left-hand side. Since we want to trigger off of new uploads, we’ll create this event to trigger off of the PUT event.
+   Once we've the code I’ll be using inside of the function, I’ll then create the S3 trigger be selecting it on the left-hand side. Since we want to trigger off of new uploads, I’ll create this event to trigger off of the PUT event.
 
 
 ### Time to Test 
