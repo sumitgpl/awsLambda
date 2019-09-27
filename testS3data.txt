@@ -1,0 +1,4 @@
+Hi
+my name is sumit
+
+testing my S3 trigger on lambda -> CloudWatch log 
