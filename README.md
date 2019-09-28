@@ -8,9 +8,9 @@
 
 ### Deployment
 
-To deploy this application , need not to create any resource on aws. Deployment will handle all of required resources.To start deployment need to execute below command at command prompt.( how already in project folder)
-
-      sls deploy
+To deploy this application , need not to create any resource on aws. Deployment will handle all of required resources.To start deployment need to execute below command at command prompt.
+      
+        sls deploy
 
 ### How to Test
 
