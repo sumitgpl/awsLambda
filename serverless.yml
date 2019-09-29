@@ -2,12 +2,35 @@
 
 service: serverless-s3
 
+package:
+  exclude:
+    - node_modules/**
+    - .idea/**
+    - .requirements/**
+    - env/**
+    - README.md
+    - package.json
+    - package-lock.json
+    - requirements.txt
+
 
 provider:
   name: aws
   runtime: python3.7
   stage: dev
   region: ap-south-1
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:*"
+      Resource:
+          - "arn:aws:s3:::incominglambda/*"
+
+    - Effect: "Allow"
+      Action:
+        - "s3:*"
+      Resource:
+          - "arn:aws:s3:::processedlambda/*"
 
 
 functions:

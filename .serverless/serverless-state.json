@@ -1,0 +1,348 @@
+{
+  "service": {
+    "service": "serverless-s3",
+    "serviceObject": {
+      "name": "serverless-s3"
+    },
+    "provider": {
+      "stage": "dev",
+      "variableSyntax": "\\${([ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)*]+?)}",
+      "name": "aws",
+      "runtime": "python3.7",
+      "region": "ap-south-1",
+      "iamRoleStatements": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "s3:*"
+          ],
+          "Resource": [
+            "arn:aws:s3:::incominglambda/*"
+          ]
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "s3:*"
+          ],
+          "Resource": [
+            "arn:aws:s3:::processedlambda/*"
+          ]
+        }
+      ],
+      "versionFunctions": true,
+      "remoteFunctionData": null,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "FilePrintLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/serverless-s3-dev-filePrint"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "dev",
+                        "serverless-s3",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/serverless-s3-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/serverless-s3-dev*:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][1]"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "serverless-s3",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "FilePrintLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/serverless-s3/dev/1569737533341-2019-09-29T06:12:13.341Z/serverless-s3.zip"
+              },
+              "FunctionName": "serverless-s3-dev-filePrint",
+              "Handler": "handler.s3file_handler",
+              "MemorySize": 1024,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Runtime": "python3.7",
+              "Timeout": 6
+            },
+            "DependsOn": [
+              "FilePrintLogGroup",
+              "IamRoleLambdaExecution"
+            ]
+          },
+          "FilePrintLambdaVersionhM5DZRY8c9H3zj80M3hNUx70Tl0nIUDaGqVY1Ptzy8": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "FilePrintLambdaFunction"
+              },
+              "CodeSha256": "ZaMUlTBwZfpw/2Q3ugrZfVLQChdrlER1EK6Qhl5kpaY="
+            }
+          },
+          "S3BucketIncominglambda": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketName": "incominglambda",
+              "NotificationConfiguration": {
+                "LambdaConfigurations": [
+                  {
+                    "Event": "s3:ObjectCreated:*",
+                    "Function": {
+                      "Fn::GetAtt": [
+                        "FilePrintLambdaFunction",
+                        "Arn"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "DependsOn": [
+              "FilePrintLambdaPermissionIncominglambdaS3"
+            ]
+          },
+          "FilePrintLambdaPermissionIncominglambdaS3": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "FilePrintLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "s3.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":s3:::incominglambda"
+                  ]
+                ]
+              }
+            }
+          },
+          "ProcessedBucket": {
+            "Type": "AWS::S3::Bucket",
+            "DeletionPolicy": "Delete",
+            "Properties": {
+              "BucketName": "processedlambda"
+            }
+          },
+          "AccessLogs": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/serverless-s3-dev"
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            }
+          },
+          "FilePrintLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "FilePrintLambdaVersionhM5DZRY8c9H3zj80M3hNUx70Tl0nIUDaGqVY1Ptzy8"
+            }
+          },
+          "NewOutput": {
+            "Description": "resource created",
+            "Value": "Resource S3 Crete"
+          }
+        }
+      },
+      "coreCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "custom": {
+      "remover": {
+        "prompt": true,
+        "buckets": [
+          "incominglambda",
+          "processedlambda"
+        ]
+      }
+    },
+    "plugins": [
+      "serverless-s3-remover"
+    ],
+    "pluginsData": {},
+    "functions": {
+      "filePrint": {
+        "handler": "handler.s3file_handler",
+        "events": [
+          {
+            "s3": {
+              "bucket": "incominglambda",
+              "event": "s3:ObjectCreated:*"
+            }
+          }
+        ],
+        "name": "serverless-s3-dev-filePrint",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "python3.7",
+        "vpc": {}
+      }
+    },
+    "resources": {
+      "Resources": {
+        "ProcessedBucket": {
+          "Type": "AWS::S3::Bucket",
+          "DeletionPolicy": "Delete",
+          "Properties": {
+            "BucketName": "processedlambda"
+          }
+        },
+        "AccessLogs": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/serverless-s3-dev"
+          }
+        }
+      },
+      "Outputs": {
+        "NewOutput": {
+          "Description": "resource created",
+          "Value": "Resource S3 Crete"
+        }
+      }
+    },
+    "serviceFilename": "serverless.yml",
+    "layers": {},
+    "artifact": "/Users/sumit/work/odesk/Ecor Rouge/awsLambda/.serverless/serverless-s3.zip"
+  },
+  "package": {
+    "artifactDirectoryName": "serverless/serverless-s3/dev/1569737533341-2019-09-29T06:12:13.341Z",
+    "artifact": "serverless-s3.zip"
+  }
+}

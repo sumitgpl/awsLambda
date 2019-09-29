@@ -4,8 +4,7 @@ import boto3
 #in out buckets
 inbucket = 'incominglambda'
 outbucket = 'processedlambda'
-s3 = boto3.client('s3',aws_access_key_id='AKIAQXNL5FAAJCPZOTUS',aws_secret_access_key='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')
-
+s3 = boto3.client('s3')
 
 def s3file_handler(event, context):
     try:
@@ -25,6 +24,7 @@ def s3file_handler(event, context):
                 "body": json.dumps('File Printed and Processed!')
             }
     except Exception as ex:
+        print('error->',ex)
         response = {
             "statusCode": 200,
             "body": json.dumps('There are some error during file process->'+str(ex))
